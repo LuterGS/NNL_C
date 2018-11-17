@@ -1,0 +1,125 @@
+신경망 설계에 있어 행렬(배열)이 필수적임. 원활한 행렬곱 구현을 위해 대부분의 layer, weight는 2-dimentional-array로 구현
+
+신경망의 Basic Concept와 순전파(Propagation) 알고리즘
+
+  layer_A, weight, layer_B 라는 세 개의 2차배열이 존재한다 하고, 그 크기를 다음과 같이 잡자.
+
+          layer_A            weight            layer_B
+  size    1 x na           na x nb              1 x nb
+
+  다음과 같은 식이 나온다.
+  val(layer_A(0,0))*val(weight(0,0)) +...+ val(layer_A(k,0))*val(weight(0,k)) +... val(layer_A(na,0))*val(weight(0,na)) = val(layer_B(0,0))
+  (val은 value의 약자로, 괄호 속의 값을 의미한다)
+
+  즉, 정리하자면
+  weight * layer_A = layer_B 이다.
+  layer_A, layer_B를 인공신경망의 인접한 두 계층이라 하고, weight를 두 계층 사이의 가중치라 하면,
+  이 행렬곱이 한 계층에서의 한 번의 순전파를 의미한다.
+
+  다시 통합적으로 정리한다면, 인공신경망은 계층과 가중치가 배열의 형태로 표현된 알고리즘이다.
+  layer_A 부터 layer_N 까지 존재할 때, 신경망의 순전파 알고리즘은 다음과 같은 형태로 표현할 수 있다.
+  weight_(A,B) * layer_A = layer_B
+  weight_(B,C) * layer_B = layer_C
+  ...
+  weight_(K,K+1) * layer_K = layer_K+1
+  ...
+  weight_(N,N-1) * layer_N-1 = layer_N
+
+  점화식 형태를 띠며, 한 식으로 축약하기에 길어질 수 있어 여러 식으로 나누어 표현했다.
+  
+  이때, layer_A는 신경망의 입력값을 저장하는 계층이므로, input layer 또는, input node라 지칭한다.
+  또한, layer_N은 신경망의 출력값을 배출하는 계층이므로, output layer 또는, output node라 지칭한다.
+  또한, 별도의 layer 하나를 두고, 거기에 정답을 저장한다. 해당 layer를 answer layer 또는, answer node라 지칭한다.
+  마지막으로, 별도의 layer 하나를 두고, 신경망의 정답과 출력값을 비교해 최종 오차값을 저장한다. 해당 layer를 error layer또는 error node라 지칭한다.
+    역전파를 대비해, 모든 layer는 error layer를 가지고 있다.
+  
+  한번의 순전파가 끝나서 layer_N까지 계산이 이루어졌을 때, 
+  학습 과정일 시 error_layer = answer_layer - output_layer 계산을 한 번 수행한다.
+  실전일 시, layer_N (이자 output_layer)이 신경망이 출력한 정답을 의미한다.
+  
+ 
+ 
+신경망에서의 Activation Function 적용
+
+  각각의 layer에서 activation function을 적용한다. 벡터곱이 아닌 스칼라곱을 사용한다. (각각의 행렬 원소에 activation function 을 적용한다)
+  즉, layer_K가 있다 할 때,
+  activation_function x layer_K = layer_K_after_activation
+  으로 표현할 수 있다.
+  순전파 시, activation function을 적용하면
+  
+  weight_(A,B) * layer_A = layer_B
+  activation_function x layer_B = layer_B_after_activation
+  weight_(B,C) * layer_B = layer_C
+  activation_function x layer_C = layer_C_after_activation
+  ...
+  weight_(K,K+1) * layer_K = layer_K+1
+  activation_function x layer_K+1 = layer_K+1_after_activation
+  ...
+  weight_(N,N-1) * layer_N-1 = layer_N
+  activation_function x layer_N+1 = layer_N+1_after_activation
+  
+  의 과정이 이루어진다. 해당 과정에서, activation function은 통일될 수도 있고, layer별로 다를 수도 있다.
+  
+  
+  
+  
+현재까지의 신경망 Basic Concept
+  
+  layer와 weight가 있다.
+  weight는 단순 이차행렬을 의미한다.
+  한 layer당 2차배열 3개를 가지게 된다.
+  layer = layer_input, layer_output, layer_error 3개를 가지게 된다.
+  layer_input = 이전 layer와 weight의 행렬곱 결과를 저장하는 layer
+  layer_output = activation_function x layer_input
+  layer_error = 역전파시 사용할 layer.
+  
+  
+  
+역전파 알고리즘(Backpropagation)
+
+  신경망의 역전파 알고리즘은 수학적으로 다음과 같이 표현할 수 있다.
+  
+  먼저, layer_A ~ layer_D 까지 있다고 가정하자.
+  각각 layer의 size는 
+          layer_A      weight_(A,B)   layer_B    weight_(B,C)   layer_C   weight_(C,D)   layer_D  
+  size    1 x na       na x nb        1 x nb     nb x nc        1 x nc    nc x nd        1 x nd
+  라 하자.
+  
+  layer_C_error(0,0) = layer_D_error(0,0) x weight_(C,D)(0,0) / Sigma(n=1 to nc)(weight_(C,D)(0,n)) + 
+                 layer_D_error(0,1) x weight_(C,D)(0,1) / Sigma(n=1 to nc)(weight_(C,D)(1,n)) +
+                 layer_D_error(0,2) x weight_(C,D)(0,2) / Sigma(n=1 to nc)(weight_(C,D)(2,n)) +
+                 ...                                                                    +
+                 layer_D_error(0,nd) x weight_(C,D)(0,nd) / Sigma(n=1 to nc)(weight_(C,D)(nd,n))
+                 
+  layer_C_error(0,1) = layer_D_error(1,0) x weight_(C,D)(1,0) / Sigma(n=1 to nc)(weight_(C,D)(0,n)) + 
+                 layer_D_error(1,1) x weight_(C,D)(1,1) / Sigma(n=1 to nc)(weight_(C,D)(1,n)) +
+                 layer_D_error(1,2) x weight_(C,D)(1,2) / Sigma(n=1 to nc)(weight_(C,D)(2,n)) +
+                 ...                                                                    +
+                 layer_D_error(1,nd) x weight_(C,D)(1,nd) / Sigma(n=1 to nc)(weight_(C,D)(nd,n))
+  ...
+  layer_C_error(nc,0) = layer_D_error(nc,0) x weight_(C,D)(nc,0) / Sigma(n=1 to nc)(weight_(C,D)(0,n)) + 
+                 layer_D_error(nc,1) x weight_(C,D)(nc,1) / Sigma(n=1 to nc)(weight_(C,D)(1,n)) +
+                 layer_D_error(nc,2) x weight_(C,D)(nc,2) / Sigma(n=1 to nc)(weight_(C,D)(2,n)) +
+                 ...                                                                    +
+                 layer_D_error(nc,nd) x weight_(C,D)(0,nd) / Sigma(n=1 to nc)(weight_(C,D)(nd,n))
+                 
+                 
+  와 같은 형태를 띠게 되고, 벡터곱으로 일반화하면
+  
+  layer_C_error     =       (weight_(C,D)_transposed      +                                            Sigma_합)                                                                      *  layer_D_error
+                            nd x nc                               nd x nc 
+  | val(0,0)  |   || val(0,0)  val(1,0)  ...  val(nd,0) |   | Sigma(n=1 to nc)(weight_(C,D)(0,n)) ... Sigma(n=1 to nc)(weight_(C,D)(k,n)) ... Sigma(n=1 to nc)(weight_(C,D)(nd,n)) ||   | val(0,0)  |
+  | val(1,0)  |   || val(0,1)  val(1,1)  ...  val(nd,1) |   | ...                                                                                                                  ||   | val(1,0)  |
+  | ...       | = || ...                                | + | Sigma(n=1 to nc)(weight_(C,D)(0,n)) ... Sigma(n=1 to nc)(weight_(C,D)(k,n)) ... Sigma(n=1 to nc)(weight_(C,D)(nd,n)) || * | ...       |
+  | val(k,0)  |   || val(0,n)  val(1,n)  ...  val(nd,n) |   | ...                                                                                                                  ||   | val(k,0)  |
+  | ...       |   || ...                                |   | ...                                                                                                                  ||   | ...       |
+  | val(nc,0) |   || val(0,nc) val(1,nc) ... val(nd,nc) |   | Sigma(n=1 to nc)(weight_(C,D)(0,n)) ... Sigma(n=1 to nc)(weight_(C,D)(k,n)) ... Sigma(n=1 to nc)(weight_(C,D)(nd,n)) ||   | val(nd,0) |
+                 
+  가 된다.
+  수식으로 일반화할 때, 
+  layer_X_error = (weight_(X,Y)_transposed + Sigma_합) * layer_Y_error
+  보통, Sigma_합 배열을 넣어 계산하는 것이 비효율적이기 때문에 빼기도 한다.
+  
+
+
+
