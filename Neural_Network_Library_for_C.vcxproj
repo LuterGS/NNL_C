@@ -119,6 +119,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="data.c" />
+    <ClCompile Include="higher_level.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="math.c" />
     <ClCompile Include="print.c" />

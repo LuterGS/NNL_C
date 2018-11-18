@@ -12,11 +12,10 @@ Matrix *matrix_product(Matrix **first_input, Matrix **second_input) {
 	//し し し	し し し し し
 	//し し し	
 	//
-
-
 	int a, b, c, d;
 	bool checker;
 	Matrix *matrix_return = new_matrix();
+
 	if ((*first_input)->row == (*second_input)->col) { checker = true; }
 	else { checker = false; }
 
@@ -37,4 +36,28 @@ Matrix *matrix_product(Matrix **first_input, Matrix **second_input) {
 	}
 
 	return matrix_return;
+}
+
+
+Matrix *matrix_transpose(Matrix **input) {
+
+	int a, b;
+	Matrix *return_matrix = sized_matrix((*input)->col, (*input)->row);
+	for (a = 0; a < (*input)->col; a++) {
+		for (b = 0; b < (*input)->row; b++) {
+			return_matrix->matrix[a][b] = (*input)->matrix[b][a];
+		}
+	}
+	return return_matrix;
+}
+
+
+double reLU(double input) {
+
+	if (input < 0) {
+		return 0.0;
+	}
+	else {
+		return input;
+	}
 }
