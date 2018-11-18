@@ -3,44 +3,40 @@ typedef struct matrix {
 	double **matrix;
 }Matrix;
 
-typedef struct weight {
 
-	Matrix *weight;
-
-
-}Weight;
-
-typedef struct inputnode{
-
-	int perceptron;
-	Matrix *layer;
-	Weight *next_weight;
-
-}InputNode;
-
-typedef struct hiddennode {
+typedef struct layer {
 
 	int perceptron, activation_func;
-	Matrix *layer, *error_layer, *bias;
-	Weight *pre_weight, *next_weight;
+	Matrix *layer;			//한 layer에 있는 1 x n 크기의 layer
+	Matrix *error_layer;		//한 layer에 있는 오차크기 저장 layer (for backpropagation)
+	Matrix *bias;			//한 layer 뒤에 있는 weight의 bias (추후에 다른 알고리즘 방식으로 수정 가능)
+	Matrix *weight;			//한 layer 뒤에 있는 weight
+	struct layer *next;		//한 layer,weight 계층 뒤의 Layer
+	struct endlayer *end;		//마지막 layer를 향할 때만 쓰는 end;
 
-}HiddenNode;
+}Layer;
 
-typedef struct outputnode {
+typedef struct endlayer {
 
-	int perceptron;
-	Matrix *layer, *answer;
-	Weight *pre_weight;
+	int perceptron, activation_func;
+	Matrix *layer;			//한 layer에 있는 1 x n 크기의 layer
+	Matrix *error_layer;		//한 layer에 있는 오차크기 저장 layer (for backpropagation)
+	Matrix *answer_layer;		//신경망의 answer_layer;
+}EndLayer;
 
-}OutputNode;
 
-
-
+//function from higher_level.c
+Layer *init();
+void propagation(Layer *input_Layer);
 
 
 //function from data.c
 Matrix *sized_matrix(int row_input, int col_input);
 Matrix *new_matrix();
+Layer *new_Layer();
+Layer *sized_Layer(int input_perceptron, int input_next_perceptron);
+EndLayer *new_EndLayer();
+EndLayer *sized_EndLayer(int input_perceptron);
 void malloc_matrix(Matrix **input, int row_input, int col_input);
 
 
