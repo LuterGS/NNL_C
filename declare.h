@@ -1,27 +1,33 @@
 typedef struct matrix {
-	int row, col;		//row°¡ Çà(°¡·Î), colÀÌ ¿­(¼¼·Î)
+	int row, col;		//rowê°€ í–‰(ê°€ë¡œ), colì´ ì—´(ì„¸ë¡œ)
 	double **matrix;
 }Matrix;
 
 
 typedef struct layer {
 
-	int perceptron, activation_func;
-	Matrix *layer;			//ÇÑ layer¿¡ ÀÖ´Â 1 x n Å©±âÀÇ layer
-	Matrix *error_layer;		//ÇÑ layer¿¡ ÀÖ´Â ¿ÀÂ÷Å©±â ÀúÀå layer (for backpropagation)
-	Matrix *bias;			//ÇÑ layer µÚ¿¡ ÀÖ´Â weightÀÇ bias (ÃßÈÄ¿¡ ´Ù¸¥ ¾Ë°í¸®Áò ¹æ½ÄÀ¸·Î ¼öÁ¤ °¡´É)
-	Matrix *weight;			//ÇÑ layer µÚ¿¡ ÀÖ´Â weight
-	struct layer *next;		//ÇÑ layer,weight °èÃş µÚÀÇ Layer
-	struct endlayer *end;		//¸¶Áö¸· layer¸¦ ÇâÇÒ ¶§¸¸ ¾²´Â end;
+	int perceptron;			//ë ˆì´ì–´ ë³„ í¼ì…‰íŠ¸ë¡  ê°œìˆ˜
+	double(*activation_func)(double);		//í™œì„±í•¨ìˆ˜ í¬ì¸í„°ë³€ìˆ˜
+	double(*activation_func_calculus)(double);	//ë¯¸ë¶„ëœ í™œì„±í•¨ìˆ˜ í¬ì¸í„°ë³€ìˆ˜ (for backpropagation)
+	Matrix *layer;			//í•œ layerì— ìˆëŠ” 1 x n í¬ê¸°ì˜ layer
+	Matrix *error_layer;		//í•œ layerì— ìˆëŠ” ì˜¤ì°¨í¬ê¸° ì €ì¥ layer (for backpropagation)
+	Matrix *bias;			//í•œ layer ë’¤ì— ìˆëŠ” weightì˜ bias (ì¶”í›„ì— ë‹¤ë¥¸ ì•Œê³ ë¦¬ì¦˜ ë°©ì‹ìœ¼ë¡œ ìˆ˜ì • ê°€ëŠ¥)
+	Matrix *weight;			//í•œ layer ë’¤ì— ìˆëŠ” weight
+	struct layer *next, *pre;	//í•œ layer,weight ê³„ì¸µ ì•ë’¤ì˜ layer (double linked-listë¥¼ ìœ„í•œ ë°©ì‹)
+	struct endlayer *end;		//ë§ˆì§€ë§‰ layerë¥¼ í–¥í•  ë•Œë§Œ ì“°ëŠ” end;
 
 }Layer;
 
 typedef struct endlayer {
 
-	int perceptron, activation_func;
-	Matrix *layer;			//ÇÑ layer¿¡ ÀÖ´Â 1 x n Å©±âÀÇ layer
-	Matrix *error_layer;		//ÇÑ layer¿¡ ÀÖ´Â ¿ÀÂ÷Å©±â ÀúÀå layer (for backpropagation)
-	Matrix *answer_layer;		//½Å°æ¸ÁÀÇ answer_layer;
+	int perceptron;
+	double(*error_func)(double,double);		//ë§ˆì§€ë§‰ layerì˜ ì˜¤ì°¨í•¨ìˆ˜ í¬ì¸í„°ë³€ìˆ˜
+	double(*activation_func)(double);		//í™œì„±í•¨ìˆ˜ í¬ì¸í„°ë³€ìˆ˜
+	double(*activation_func_calculus)(double);	//ë¯¸ë¶„ëœ í™œì„±í•¨ìˆ˜ í¬ì¸í„°ë³€ìˆ˜ (for backpropagation)
+	Matrix *layer;			//í•œ layerì— ìˆëŠ” 1 x n í¬ê¸°ì˜ layer
+	Matrix *error_layer;		//í•œ layerì— ìˆëŠ” ì˜¤ì°¨í¬ê¸° ì €ì¥ layer (for backpropagation)
+	Matrix *answer_layer;		//ì‹ ê²½ë§ì˜ answer_layer;
+	struct layer *pre;		//double linked-listë¡œ ë¬¶ê¸° 
 }EndLayer;
 
 
