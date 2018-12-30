@@ -2,54 +2,97 @@
 #include <stdlib.h>
 #include "declare.h"
 
-Layer *init(int *layer_num) {
+Layer *init(int layer_num, int *layer_perceptron, int *layer_actnum) {
 
 	/*
-	¼ıÀÚ ÀÔ·Â ¹Ş¾Ò´Ù°í °¡Á¤ ÈÄ ÁøÇà
-	¼ıÀÚ ÀÔ·ÂÀº
-		1. ÀüÃ¼ layerÀÇ ¼ö (input, output ³ëµå Æ÷ÇÔ) -> º¯¼ö a¿¡ ÀúÀåÇÑ´Ù°í ÇÏÀÚ.
-		2. a¸¸Å­ ¹İº¹ÇÏ¸ç layerÀÇ perceptron ¼ö¸¦ ¹ŞÀ½
-		3. ¹ŞÀº °ª¸¸Å­ ÇÒ´ç
+	layer_numì€ ì‹ ê²½ë§ ê³„ì¸µìˆ˜
+	layer_perceptronì€ ì‹ ê²½ë§ í¼ì…‰íŠ¸ë¡  ì •ì˜ëœ ë°°ì—´ìˆ˜
+	layer_actnumì€ ì‹ ê²½ë§ ê° ì¸µì˜ í™œì„±í•¨ìˆ˜ ë²ˆí˜¸ ì €ì¥ëœ ë°°ì—´ìˆ˜
 	*/
-	int *layer_perceptron_num, a, b, c;
-	Layer *input_Layer = new_Layer(), *maker_Layer = new_Layer();
-	EndLayer *end_Layer = new_EndLayer;
+	int a, b, c;
+	Layer *output = new_Layer();
+	Layer *maker = new_Layer();
+	maker = output;
 
-
-	(*layer_num) = 3;
-	layer_perceptron_num = (int *)malloc(sizeof(int) * (*layer_num));
-	layer_perceptron_num[0] = 255;
-	layer_perceptron_num[0] = 400;
-	layer_perceptron_num[0] = 10;
-
-	input_Layer = sized_Layer(layer_perceptron_num[a], layer_perceptron_num[a + 1]);
-	maker_Layer = input_Layer;
-	for (a = 1; a < (*layer_num) - 1; a++) {
-		maker_Layer->next = sized_Layer(layer_perceptron_num[a], layer_perceptron_num[a + 1]);
-		maker_Layer = maker_Layer->next;
+	output = sized_Layer(layer_perceptron[0], layer_perceptron[1], layer_actnum[0]);
+	output->pre = null;
+	for(a = 1; a < layer_length - 1; a++){
+		maker->next = sized_Layer(layer_perceptron[a], layer_perceptron[a+1], layer_actnum[a]);
+		maker->next->pre = maker;
+		maker = maker->next;
 	}
-	maker_Layer->end = sized_EndLayer(layer_perceptron_num[(*layer_num) - 1]);
-
-	return input_Layer;
+	maker->end = sized_EndLayer(layer_perceptron[layer_length-2], layer_actnum[layer_length-2]);
+	maker->end->pre = maker;
+	
+	return output;		//makerë¡œ ìƒì„±ë˜ëŠ”ì§€ ê²€ì¦ í•„ìš”
 }
 
 
-void propagation(Layer **input_Layer, int layer_num) {
+void propagation(Layer **input, int layer_num) {
 
-	//µ¥ÀÌÅÍ¸¦ ÀÎÇ²¹Ş´Â °úÁ¤ÀÌ ÇÊ¿äÇÔ, Çß´Ù°í Ä¡°í
 	int a;
-	Layer *calculator = (*input_Layer);
-	EndLayer *end_calculator;
-
-	calculator->next->layer = matrix_product(&(calculator->weight), &(calculator->layer));
-	//do_activation_func
-	for (a = 1; a < layer_num - 1; a++) {
-		calculator = calculator->next;
-		calculator->next->layer = matrix_product(&(calculator->weight), &(calculator->layer));
-		//do_activation_func
+	Layer *locator = (*input);
+	
+	for(a = 0; a < layer_num-2; a++){
+		m_product_pointer(&(locator->next->layer), &(locator->weight), &(locator->layer));
+		locator = locator->next;
+		do_actfunc(&locator);
 	}
-	calculator->end = end_calculator;
-	end_calculator->layer = matrix_product(&(calculator->weight), &(calculator->weight));
-	//do_activation_func
+	m_product_pointer(&(locator->end->layer), &(locator->weight), &(locator->layer));
+	do_actfunc_end(&(locator->end));
+
+}
+
+void sgd_training(Layer **first, EndLayer **last, int layer_num, Matrix **input_data, Matrix ***answer_data, int data_length){
+	
+	int a;
+	
+	for(a = 0; a < data_length; a++){
+		(*first)->layer = (*input_data)[a];
+		(*last)->answer_layer = (*answer_data)[a];
+		propagation(first, layer_num);
+		do_error_func(last);
+		set_error_layer(last, layer_num);
+		weight_update(last, layer_num, learning_rate);
+	}
+}
+
+void batch_training(Layer **first, EndLayer **last, int layer_num, Matrix **input_data, Matrix ***answer_data, int data_length){
+	
+	int a;
+	Matrix **temp_weight = new_temp_weight(first, layer_num);
+	
+	for(a = 0; a < data_length; a++){
+		(*first)->layer = (*input_data)[a];
+		(*last)->answer_layer = (*answer_data)[a];
+		propagation(first, layer_num);
+		do_error_func(last);
+		set_error_layer(last, layer_num);
+		temp_weight_update(last, &temp_weight, layer_num, learning_rate);
+	}
+	temp_weight_multiple(&temp_weight, layer_num, 1/data_length);
+	add_weight(first, &temp_weight, layer_num);
+}
+
+void minibatch_training(Layer **first, EndLayer **last, int layer_num, Matrix **input_data, Matrix ***answer_data, int data_length, int epoch){
+	
+	int a, b, c = 0;
+	Matrix **temp_weight = new_temp_weight(first, layer_num);
+	
+	for(a = 0; a < data_length/epoch; a++){
+		temp_weight_nultiple(&temp_weight, layer_num, 0.0);
+		for(b = 0; b < epoch; b++; c++){
+			(*first)->layer = (*input_data)[c];
+			(*last)->answer_layer = (*answer_data)[c];
+			propagation(first, layer_num);
+			do_error_func(last);
+			set_error_layer(last, layer_num);
+			temp_weight_update(last, &temp_weight, layer_num, learning_rate);
+		}	
+		temp_weight_multiple(&temp_weight, layer_num, 1/epoch);
+		add_weight(first, &temp_weight, layer_num);
+	}
+}
+
 
 }
