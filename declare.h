@@ -31,26 +31,56 @@ typedef struct endlayer {
 }EndLayer;
 
 
-//function from higher_level.c
-Layer *init();
-void propagation(Layer *input_Layer);
-
-
-//function from data.c
-Matrix *sized_matrix(int row_input, int col_input);
+//function from data_alloc.c
 Matrix *new_matrix();
+Matrix *sized_matrix(int, int);
 Layer *new_Layer();
-Layer *sized_Layer(int input_perceptron, int input_next_perceptron);
+Layer *sized_Layer(int, int, int);
 EndLayer *new_EndLayer();
-EndLayer *sized_EndLayer(int input_perceptron);
-void malloc_matrix(Matrix **input, int row_input, int col_input);
+EndLayer *sized_EndLayer(int, int);
+Matrix **new_temp_weight(Matrix ***, double);
+void malloc_matrix(Matrix **, int, int);
 
+//function from matrix_math.c
+void m_product_pointer(Matrix **, Matrix **, Matrix **);
+Matrix *m_product_fb(Matrix *, Matrix *);
+void m_product_fb_error(Matrix **, Matrix *, Matrix **);
+void m_multiple_pointer(Matrix **, double);
+Matrix *m_multiple_fb(Matrix *, double);
+void m_plus_pointer(Matrix **, Matrix **);
+void m_plus_fb(Matrix **, Matrix *);
+Matrix *m_linear_product(Matrix **, Matrix *);
+Matrix *m_transpose(Matrix **);
+int m_pmchecker(Matrix **, Matrix **);
 
 //function from math.c
-Matrix *matrix_product(Matrix **first_input, Matrix **second_input);
-Matrix *matrix_transpose(Matrix **input);
-double reLU(double input);
+double reLU(double);
+double reLU_calculus(double);
+double Leaky_reLU(double);
+double Leaky_reLU_calculus(double);
+double square_error(double, double);
 
+//function from set_network.c
+void set_actfunc(Layer **, int);
+void set_actfunc_end(EndLayer **, int);
+void set_errfunc(EndLayer **, int);
+EndLayer *find_EndLayer(Layer **, int);
 
-//function from print.c
-void print_matrix(Matrix *input);
+//function from training.c
+void do_actfunc(Layer **);
+void do_actfunc_end(EndLayer **);
+Matrix *do_actfunc_calculus(Layer **);
+Matrix *do_actfunc_calculus_end(EndLayer **);
+void do_errfunc(EndLayer **);
+void set_error_layer(EndLayer **, int);
+void weight_update(EndLayer **, int, double);
+void temp_weight_update(EndLayer **, Matrix ***, int, double);
+void temp_weight_multiple(Matrix ***, int, double);
+void add_weight(Layer **, Matrix ***, int);
+
+//function from higher_level.c
+Layer *init(int, int *, int *);
+void propagation(Layer **, int);
+void sgd_training(Layer **, EndLayer **, int, Matrix ***, Matrix ***, int);
+void batch_training(Layer **, EndLayer **, int, Matrix ***, Matrix ***, int);
+void minibatch_training(Layer **, EndLayer **, int, Matrix ***, Matrix ***, int, int);
