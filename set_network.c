@@ -23,13 +23,7 @@ void set_actfunc_end(EndLayer **input, int act_num){
       ... //미구현
     }
 }
-
-void set_errfunc(EndLayer **input, int errfunc_num){
-    if(errfunc_num == 1){
-        (*input)->error_func = square_error;
-    }
-    ... //미구현
-}
+//EndLayer의 함수는 무조건 softmax로 되어야 하는 만큼 추가적인 수정이 필요
 
 EndLayer *find_EndLayer(Layer **input, int layer_num){
   
