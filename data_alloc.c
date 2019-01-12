@@ -30,7 +30,8 @@ Layer *sized_Layer(int perceptron, int next_perceptron, int activation_num) {
 
 	Layer *output = new_Layer();
 	output->perceptron = perceptron;
-	output->layer = sized_matrix(1, perceptron);
+	output->layer_in = sized_matrix(1, perceptron);
+	output->layer_out = sized_matrix(1, perceptron);
 	output->error_layer = sized_matrix(1, perceptron);
 	output->weight = sized_matrix(perceptron, next_perceptron);
 	output->bias = sized_matrix(perceptron, next_perceptron);
@@ -50,7 +51,8 @@ EndLayer *new_EndLayer() {
 EndLayer *sized_EndLayer(int perceptron, int activation_num) {
 
 	EndLayer *output = new_EndLayer();
-	output->layer = sized_matrix(1, perceptron);
+	output->layer_in = sized_matrix(1, perceptron);
+	output->layer_out = sized_matrix(1, perceptron);
 	output->answer_layer = sized_matrix(1, perceptron);
 	output->error_layer = sized_matrix(1, perceptron);
 	set_actfunc_end(&output, activation_num);
