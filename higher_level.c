@@ -8,6 +8,8 @@ Layer *init(int layer_num, int *layer_perceptron, int *layer_actnum) {
 	layer_num은 신경망 계층수
 	layer_perceptron은 신경망 퍼셉트론 정의된 배열수
 	layer_actnum은 신경망 각 층의 활성함수 번호 저장된 배열수
+	
+	+at 2019.1.12 -> 체계적 수정 필요
 	*/
 	int a, b, c;
 	Layer *output = new_Layer();
@@ -34,11 +36,11 @@ void propagation(Layer **input, int layer_num) {
 	Layer *locator = (*input);
 	
 	for(a = 0; a < layer_num-2; a++){
-		m_product_pointer(&(locator->next->layer), &(locator->weight), &(locator->layer));
+		m_product_pointer(&(locator->next->layer_in), &(locator->weight), &(locator->layer_out));
 		locator = locator->next;
 		do_actfunc(&locator);
 	}
-	m_product_pointer(&(locator->end->layer), &(locator->weight), &(locator->layer));
+	m_product_pointer(&(locator->end->layer_in), &(locator->weight), &(locator->layer_out));
 	do_actfunc_end(&(locator->end));
 
 }
@@ -51,7 +53,6 @@ void sgd_training(Layer **first, EndLayer **last, int layer_num, Matrix **input_
 		(*first)->layer = (*input_data)[a];
 		(*last)->answer_layer = (*answer_data)[a];
 		propagation(first, layer_num);
-		do_error_func(last);
 		set_error_layer(last, layer_num);
 		weight_update(last, layer_num, learning_rate);
 	}
@@ -66,7 +67,6 @@ void batch_training(Layer **first, EndLayer **last, int layer_num, Matrix **inpu
 		(*first)->layer = (*input_data)[a];
 		(*last)->answer_layer = (*answer_data)[a];
 		propagation(first, layer_num);
-		do_error_func(last);
 		set_error_layer(last, layer_num);
 		temp_weight_update(last, &temp_weight, layer_num, learning_rate);
 	}
@@ -85,7 +85,6 @@ void minibatch_training(Layer **first, EndLayer **last, int layer_num, Matrix **
 			(*first)->layer = (*input_data)[c];
 			(*last)->answer_layer = (*answer_data)[c];
 			propagation(first, layer_num);
-			do_error_func(last);
 			set_error_layer(last, layer_num);
 			temp_weight_update(last, &temp_weight, layer_num, learning_rate);
 		}	
