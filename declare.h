@@ -9,7 +9,8 @@ typedef struct layer {
 	int perceptron;			//레이어 별 퍼셉트론 개수
 	double(*activation_func)(double);		//활성함수 포인터변수
 	double(*activation_func_calculus)(double);	//미분된 활성함수 포인터변수 (for backpropagation)
-	Matrix *layer;			//한 layer에 있는 1 x n 크기의 layer
+	Matrix *layer_in;		//한 layer에 있는 1 x n 크기의 layer (before actfunc layer)
+	Matrix *layer_out;		//after actfunc layer
 	Matrix *error_layer;		//한 layer에 있는 오차크기 저장 layer (for backpropagation)
 	Matrix *bias;			//한 layer 뒤에 있는 weight의 bias (추후에 다른 알고리즘 방식으로 수정 가능)
 	Matrix *weight;			//한 layer 뒤에 있는 weight
@@ -24,7 +25,8 @@ typedef struct endlayer {
 	double(*error_func)(double,double);		//마지막 layer의 오차함수 포인터변수
 	double(*activation_func)(double);		//활성함수 포인터변수
 	double(*activation_func_calculus)(double);	//미분된 활성함수 포인터변수 (for backpropagation)
-	Matrix *layer;			//한 layer에 있는 1 x n 크기의 layer
+	Matrix *layer_in;		//한 layer에 있는 1 x n 크기의 layer (before actfunc layer)
+	Matrix *layer_out;		//after actfunc layer
 	Matrix *error_layer;		//한 layer에 있는 오차크기 저장 layer (for backpropagation)
 	Matrix *answer_layer;		//신경망의 answer_layer;
 	struct layer *pre;		//double linked-list로 묶기 
@@ -58,12 +60,12 @@ double reLU(double);
 double reLU_calculus(double);
 double Leaky_reLU(double);
 double Leaky_reLU_calculus(double);
-double square_error(double, double);
+double softmax(double);
+void real_softmax(EndLayer **);
 
 //function from set_network.c
 void set_actfunc(Layer **, int);
 void set_actfunc_end(EndLayer **, int);
-void set_errfunc(EndLayer **, int);
 EndLayer *find_EndLayer(Layer **, int);
 
 //function from training.c
@@ -71,7 +73,6 @@ void do_actfunc(Layer **);
 void do_actfunc_end(EndLayer **);
 Matrix *do_actfunc_calculus(Layer **);
 Matrix *do_actfunc_calculus_end(EndLayer **);
-void do_errfunc(EndLayer **);
 void set_error_layer(EndLayer **, int);
 void weight_update(EndLayer **, int, double);
 void temp_weight_update(EndLayer **, Matrix ***, int, double);
