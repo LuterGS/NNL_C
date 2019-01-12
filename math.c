@@ -24,3 +24,19 @@ double Leaky_reLU_calculus(double input){
 double square_error(double output, double answer){
       return answer - output;
 }
+
+double softmax(double input){
+      //fake function for "real" softmax!
+}
+
+void real_softmax(EndLayer **input){
+      int a;
+      double sum_of_perceptron = 0.0;
+      
+      for(a = 0; a < (*input)->perceptron; a++){
+            sum_of_perceptron += (*input)->layer_in->matrix[0][a];
+      }
+      for(a = 0; a < (*input)->perceptron; a++){
+            (*input)->layer_out->matrix[0][a] = (*input)->layer_in->matrix[0][a] / sum_of_perceptron;
+      }
+}
