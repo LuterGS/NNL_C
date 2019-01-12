@@ -21,10 +21,6 @@ double Leaky_reLU_calculus(double input){
       else {return 0.1;}
 }
 
-double square_error(double output, double answer){
-      return answer - output;
-}
-
 double softmax(double input){
       //fake function for "real" softmax!
 }
