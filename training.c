@@ -7,7 +7,7 @@ void do_actfunc (Layer **input){
 	int a;
 	
 	for(a = 0; a < (*input)->perceptron; a++){
-		(*input)->layer->matrix[0][a] = (*input)->activation_func((*input)->layer->matrix[0][a]);
+		(*input)->layer_out->matrix[0][a] = (*input)->activation_func((*input)->layer_in->matrix[0][a]);
 	}
 }
 
@@ -15,8 +15,12 @@ void do_actfunc (EndLayer **input){
 	
 	int a;
 	
-	for(a = 0; a < (*input)->perceptron; a++){
-		(*input)->layer->matrix[0][a] = (*input)->activation_func((*input)->layer->matrix[0][a]);
+	if((*input)->activation_func == softmax){
+		real_softmax(input);
+	}else{
+		for(a = 0; a < (*input)->perceptron; a++){
+			(*input)->layer_in->matrix[0][a] = (*input)->activation_func((*input)->layer_out->matrix[0][a]);
+		}
 	}
 }
 
@@ -26,7 +30,7 @@ Matrix *do_actfunc_calculus(Layer **input){
 	Matrix *output = sized_matrix(1, (*input)->perceptron);
 	
 	for(a = 0; a < (*input)->perceptron; a++){
-		output->matrix[0][a] = (*input)->activation_func_calculus((*input)->layer->matrix[0][a]);
+		output->matrix[0][a] = (*input)->activation_func_calculus((*input)->layer_in->matrix[0][a]);
 	}
 	
 	return output;
@@ -38,25 +42,20 @@ Matrix *do_actfunc_calculus_end(EndLayer **input){
 	Matrix *output = sized_matrix(1, (*input)->perceptron);
 	
 	for(a = 0; a < (*input)->perceptron; a++){
-		output->matrix[0][a] = (*input)->activation_func_calculus((*input)->layer->matrix[0][a]);
+		output->matrix[0][a] = (*input)->activation_func_calculus((*input)->layer_in->matrix[0][a]);
 	}
 	
 	return output;
-}
-
-void do_errfunc(EndLayer **input){
-	
-	int a;
-	
-	for(a = 0; a < (*input)->perceptron; a++){
-		(*input)->error_layer[0][a] = (*input)->error_func((*input)->layer->matrix[0][a], (*input)->answer_layer->matrix[0][a]);
-	}
 }
 
 void set_error_layer(EndLayer **input, int layer_num){
 	
 	int a;
 	Layer *locator = (*input)->pre;
+	
+	for(a = 0; a < (*input)->perceptron; a++){
+		(*input)->error_layer->matrix[0][a] = (*input)->answer_layer->matrix[0][a] - (*input)->layer_out->matrix[0][a];
+	}
 	
 	m_product_fb_error(&(locator->error_layer),
 			   m_transpowe(&(locator->weight)),
@@ -74,7 +73,11 @@ void set_error_layer(EndLayer **input, int layer_num){
 }
 
 
-void weight_update(EndLayer **input, int layer_num, double learning_rate){		//경사하강법 기반 backprop
+void weight_update(EndLayer **input, int layer_num, double learning_rate){		
+	/*
+	경사하강법 기반 backprop
+	cross entropy 함수 적용으로 출력층 - 출력 바로 전 은닉층의 backporp 구조 간단화
+	*/
 
 	int a;
 	Layer *locator = (*input)->pre;
@@ -83,10 +86,8 @@ void weight_update(EndLayer **input, int layer_num, double learning_rate){		//�
 		&(locator->weight),
 		m_multiple_fb(
 			m_product_fb(
-				m_linear_product(
-					&((*input)->error_layer),
-					do_actfunc_calculus_end(input)),
-				m_transpose(&(locator->layer))),
+				(*input)->error_layer,
+				m_transpose(&(locator->layer_out)) ),
 			learning_rate));
 	locator = locator->pre;
 	
@@ -98,13 +99,17 @@ void weight_update(EndLayer **input, int layer_num, double learning_rate){		//�
 					m_linear_product(
 						&(locator->next->error_layer),
 						do_actfunc_calculus_end(&(locator->next))),
-					m_transpose(&(locator->layer))),
+					m_transpose(&(locator->layer_out))),
 				learning_rate));
 		locator = locator->pre;		//마지막 반복시 null;
 	}
 }
 
 void *temp_weight_update(EndLayer **input_EndLayer, Matrix ***input, int layer_num, double learning_rate){
+	/*
+	경사하강법 기반 backprop
+	cross entropy 함수 적용으로 출력층 - 출력 바로 전 은닉층의 backporp 구조 간단화
+	*/
 	
 	int a;
 	Layer *locator = (*input_EndLayer)->pre;
@@ -113,10 +118,8 @@ void *temp_weight_update(EndLayer **input_EndLayer, Matrix ***input, int layer_n
 		&((*input)[layer_num-2]),
 		m_multiple_fb(
 			m_product_fb(
-				m_linear_product(
-					&((*input_EndLayer)->error_layer),
-					do_actfunc_calculus_end(input_EndLayer)),
-				m_transpose(&(locator->layer))),
+				(*input)->error_layer,
+				m_transpose(&(locator->layer_out)) ),
 			learning_rate));
 	locator = locator->pre;
 	
@@ -128,7 +131,7 @@ void *temp_weight_update(EndLayer **input_EndLayer, Matrix ***input, int layer_n
 					m_linear_product(
 						&(locator->next->error_layer),
 						do_actfunc_calculus_end(&(locator->next))),
-					m_transpose(&(locator->layer))),
+					m_transpose(&(locator->layer_out))),
 				learning_rate));
 		locator = locator->pre;		//마지막 반복시 null
 	}
